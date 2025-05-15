@@ -13,6 +13,7 @@ html[data-theme="dark"] body {
 
 :root {
     --primary: #3B82F6;
+    --sl-font: 'Pretendard', sans-serif;
 }
 
 a {

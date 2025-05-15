@@ -7,6 +7,14 @@ import starlightGiscus from 'starlight-giscus';
 export default defineConfig({
 	integrations: [
 		starlight({
+			plugins: [
+				starlightGiscus({
+					repo: 'MojitoBar/tech-blog',
+					repoId: 'R_kgDOOqh5Pw',
+					category: 'General',
+					categoryId: 'DIC_kwDOOqh5P84CqLcP',
+				}),
+			],
 			title: "Mojitobar's blog",
 			description: '개발 블로그',
 			social: [
@@ -28,13 +36,7 @@ export default defineConfig({
 					},
 				},
 			],
-			customCss: ['./src/styles/global.css', './src/styles/card.css', './src/styles/custom.css'],
-		}),
-		starlightGiscus({
-			repo: 'MojitoBar/tech-blog',
-			repoId: 'R_kgDOOqh5Pw',
-			category: 'General',
-			categoryId: 'DIC_kwDOOqh5P84CqLcP',
+			customCss: ['./src/styles/global.css', './src/styles/card.css', './src/styles/custom.css', './src/fonts/font-face.css'],
 		}),
 	],
 });
