@@ -31,10 +31,10 @@ export default defineConfig({
 			customCss: ['./src/styles/global.css', './src/styles/card.css', './src/styles/custom.css'],
 		}),
 		starlightGiscus({
-			repo: 'YOUR_GITHUB_USERNAME/YOUR_REPO_NAME',
-			repoId: 'YOUR_REPO_ID',
-			category: 'YOUR_DISCUSSION_CATEGORY_NAME',
-			categoryId: 'YOUR_CATEGORY_ID',
+			repo: 'MojitoBar/tech-blog',
+			repoId: 'R_kgDOOqh5Pw',
+			category: 'General',
+			categoryId: 'DIC_kwDOOqh5P84CqLcP',
 		}),
 	],
 });
