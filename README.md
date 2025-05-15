@@ -1,6 +1,36 @@
-# Starlight Starter Kit: Basics
+# mojitobar's blog
 
 [![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+
+## 🚀 프로젝트 구조
+
+```
+.
+├── public/          # 정적 파일 (favicon, 이미지 등)
+├── src/
+│   ├── assets/      # 블로그에서 사용할 이미지, 폰트 등
+│   ├── content/     # 블로그 포스트
+│   │   ├── docs/    # 마크다운 포스트
+│   └── content.config.ts
+├── astro.config.mjs
+├── package.json
+└── tsconfig.json
+```
+
+## 🧞 명령어
+
+| 명령어                   | 설명                                           |
+| :------------------------ | :----------------------------------------------- |
+| `npm install`             | 의존성 설치                            |
+| `npm run dev`             | 로컬 개발 서버 실행 (`localhost:4321`)      |
+| `npm run build`           | 프로덕션 빌드 (`./dist/`)          |
+| `npm run preview`         | 배포 전 로컬에서 빌드 미리보기     |
+| `npm run astro ...`       | Astro CLI 명령어 실행 |
+| `npm run astro -- --help` | Astro CLI 도움말 보기                     |
+
+## 👀 더 알아보기
+
+[Starlight 문서](https://starlight.astro.build/)와 [Astro 문서](https://docs.astro.build)를 참고하세요.
 
 ```
 npm create astro@latest -- --template starlight
@@ -51,4 +81,4 @@ All commands are run from the root of the project, from a terminal:
 
 ## 👀 Want to learn more?
 
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
+Check out [Starlight's docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).

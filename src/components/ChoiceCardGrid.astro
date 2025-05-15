@@ -1,0 +1,14 @@
+---
+// src/components/ChoiceCardGrid.astro
+// 이 컴포넌트는 두 개의 콘텐츠 블록을 위한 반응형 그리드 레이아웃을 제공합니다.
+// 스타일은 src/styles/custom.css에 정의된 클래스를 활용합니다.
+---
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
+    <div>
+        <slot name="choiceOne" />
+    </div>
+    <div>
+        <slot name="choiceTwo" />
+    </div>
+</div>

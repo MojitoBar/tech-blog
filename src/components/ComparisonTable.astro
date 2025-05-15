@@ -1,0 +1,73 @@
+---
+// src/components/ComparisonTable.astro
+// 이 컴포넌트는 비교 테이블을 위한 세련된 레이아웃을 제공합니다.
+
+export interface Row {
+    feature: string; // 특성
+    etl: string; // ETL 내용 (HTML 허용)
+    elt: string; // ELT 내용 (HTML 허용)
+}
+
+export interface Props {
+    title: string; // 테이블 제목 (예: "유연성 비교")
+    rows: Row[]; // 테이블 데이터 배열
+}
+
+const { title, rows } = Astro.props;
+
+// • 문자를 HTML 엔티티 &bull;로 변경하고, 각 줄을 div로 감싸는 함수
+const formatCellContent = (content: string) => {
+    if (!content) return "";
+    const lines = content.split(/<br\s*\/?>/gi); // <br/> 또는 <br> 기준으로 줄 분리
+    return lines
+        .map((line) => {
+            line = line.trim();
+            if (line.startsWith("• ")) {
+                // 글머리 기호가 있는 줄
+                return `<div class="bullet-item"><span class="bullet">&bull;</span><span class="bullet-text">${line.substring(2).trim()}</span></div>`;
+            } else if (line) {
+                // 글머리 기호가 없는 일반 텍스트 줄
+                return `<div class="text-item">${line}</div>`;
+            }
+            return ""; // 빈 줄은 무시
+        })
+        .join("");
+};
+---
+
+<div class="comparison-table-container">
+    <h4>{title}</h4>
+    <div class="comparison-table-custom">
+        <div class="table-custom-header">
+            <div class="header-custom-cell feature-col">특성</div>
+            <div class="header-custom-cell etl-col">ETL</div>
+            <div class="header-custom-cell elt-col">ELT</div>
+        </div>
+        {
+            rows.map((row) => (
+                <div class="table-custom-row">
+                    <div
+                        class="body-custom-cell feature-col"
+                        set:html={formatCellContent(row.feature)}
+                    />
+                    <div
+                        class="body-custom-cell etl-col"
+                        set:html={formatCellContent(row.etl)}
+                    />
+                    <div
+                        class="body-custom-cell elt-col"
+                        set:html={formatCellContent(row.elt)}
+                    />
+                </div>
+            ))
+        }
+    </div>
+</div>
+
+<style>
+    /* 스타일은 src/styles/custom.css 로 이동하여 전역적으로 관리합니다.
+   컴포넌트 레벨 <style> 태그는 여기서는 비워두거나,
+   이 컴포넌트에서만 매우 특 특정한 스타일만 남길 수 있습니다.
+   하지만 일관성을 위해 custom.css에 정의하는 것을 권장합니다.
+*/
+</style>
