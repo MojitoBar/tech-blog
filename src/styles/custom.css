@@ -177,3 +177,40 @@
 .bullet-item .bullet-text {
     flex-grow: 1;
 }
+
+.trendy-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5em;
+    font-size: 0.9em;
+}
+
+.trendy-table th,
+.trendy-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.trendy-table th {
+    background-color: #f7f7f7;
+    font-weight: bold;
+}
+
+.trendy-table tbody tr:nth-child(even) {
+    background-color: #fdfdfd;
+}
+
+.normalization-example-container {
+    margin-bottom: 2em;
+    padding: 1em;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+.normalization-example-container p>strong {
+    font-size: 1.1em;
+    display: block;
+    margin-bottom: 0.5em;
+}

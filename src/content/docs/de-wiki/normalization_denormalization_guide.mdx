@@ -2,12 +2,10 @@
 title: '데이터 정규화 vs 비정규화: 핵심 가이드'
 description: '데이터베이스 설계의 핵심, 정규화와 비정규화를 비교 분석하고 상황에 맞는 최적의 선택을 안내합니다. 주요 개념, 장단점, 사용 사례를 자세히 알아보세요.'
 pubDate: '2025-05-20' # 실제 발행일에 맞춰 수정해주세요.
-# heroImage: '/images/your-hero-image.png' # 적절한 히어로 이미지를 추가해주세요.
-tableOfContents:
-  minHeadingLevel: 2
-  maxHeadingLevel: 3
+heroImage: '/images/normalization-denormalization.png' # 적절한 히어로 이미지를 추가해주세요.
 ---
 import ComparisonTable from '../../../components/ComparisonTable.astro';
+import NormalizationExampleTable from '../../../components/NormalizationExampleTable.astro';
 
 :::tip[💡 핵심 요약]
 **정규화(Normalization)** 는 데이터 중복을 최소화하고 일관성을 확보하는 데이터베이스 구조화 기법입니다. 반면, **비정규화(Denormalization)** 는 읽기 성능을 높이기 위해 의도적으로 데이터 중복을 허용하는 전략입니다. 각 방식은 데이터 무결성, 성능, 관리 복잡성 등에서 서로 다른 장단점을 가지므로, 시스템의 특성과 요구사항을 정확히 파악하고 적절한 균형을 찾는 것이 중요합니다. 이 글은 두 기법을 심층 비교하여 최적의 설계 결정을 돕습니다.
@@ -29,10 +27,138 @@ import ComparisonTable from '../../../components/ComparisonTable.astro';
 
 정규화는 여러 단계의 **정규형(Normal Form)** 으로 나뉩니다. 각 단계는 특정 규칙을 적용하여 데이터 중복을 점진적으로 줄여나갑니다.
 
-*   **제1정규형 (1NF)**: 테이블의 모든 컬럼 값이 원자값(더 이상 분해되지 않는 단일 값)을 갖도록 합니다. 예를 들어, 하나의 셀에 여러 개의 전화번호가 쉼표로 구분되어 있다면 1NF를 위반한 것입니다.
+*   **제1정규형 (1NF)**: 테이블의 모든 컬럼 값이 원자값(더 이상 분해되지 않는 단일 값)을 갖도록 합니다.
+    *   **예시**: 고객 테이블의 `전화번호` 컬럼에 여러 값이 한 셀에 있는 경우.
+
+        <div class="normalization-example-container">
+          <NormalizationExampleTable
+            tableTitle="정규화 전 (<code>고객</code> 테이블)"
+            headers={['고객ID', '이름', '전화번호']}
+            rows={[
+              ['1', '홍길동', "'010-1234-5678, 02-111-2222'"],
+              ['2', '김철수', "'010-9876-5432'"],
+            ]}
+          />
+          <p><strong>정규화 후 (<code>고객</code> 테이블과 <code>고객_전화번호</code> 테이블 분리)</strong></p>
+          <NormalizationExampleTable
+            tableTitle="<code>고객</code> 테이블"
+            headers={['고객ID', '이름']}
+            rows={[
+              ['1', '홍길동'],
+              ['2', '김철수'],
+            ]}
+          />
+          <NormalizationExampleTable
+            tableTitle="<code>고객_전화번호</code> 테이블"
+            headers={['고객ID', '전화번호']}
+            rows={[
+              ['1', "'010-1234-5678'"],
+              ['1', "'02-111-2222'"],
+              ['2', "'010-9876-5432'"],
+            ]}
+          />
+        </div>
+
 *   **제2정규형 (2NF)**: 테이블이 1NF를 만족하고, 기본 키의 일부에만 종속되는 컬럼(부분 함수 종속)이 없어야 합니다. 복합 기본 키를 사용하는 테이블에서 주로 고려됩니다.
+    *   **예시**: `주문_상품` 테이블에서 상품명이 상품번호에만 종속되는 경우 (복합 기본 키: 주문번호, 상품번호).
+
+        <div class="normalization-example-container">
+          <NormalizationExampleTable
+            tableTitle="정규화 전 (<code>주문_상품</code> 테이블)"
+            headers={['주문번호', '상품번호', '상품명', '수량']}
+            rows={[
+              ['1001', 'P001', '노트북', '1'],
+              ['1001', 'P002', '마우스', '1'],
+              ['1002', 'P001', '노트북', '2'],
+            ]}
+          />
+          <p><strong>정규화 후 (<code>주문_상품</code> 테이블과 <code>상품</code> 테이블 분리)</strong></p>
+          <NormalizationExampleTable
+            tableTitle="<code>주문_상품</code> 테이블"
+            headers={['주문번호', '상품번호', '수량']}
+            rows={[
+              ['1001', 'P001', '1'],
+              ['1001', 'P002', '1'],
+              ['1002', 'P001', '2'],
+            ]}
+          />
+          <NormalizationExampleTable
+            tableTitle="<code>상품</code> 테이블"
+            headers={['상품번호', '상품명']}
+            rows={[
+              ['P001', '노트북'],
+              ['P002', '마우스'],
+            ]}
+          />
+        </div>
+
 *   **제3정규형 (3NF)**: 테이블이 2NF를 만족하고, 기본 키가 아닌 컬럼이 다른 기본 키가 아닌 컬럼에 종속되는 현상(이행적 종속)이 없어야 합니다.
+    *   **예시**: `직원` 테이블에서 부서명이 부서코드에 종속되고, 부서위치 또한 부서코드에 종속되는 경우 (기본 키: 직원ID).
+
+        <div class="normalization-example-container">
+          <NormalizationExampleTable
+            tableTitle="정규화 전 (<code>직원</code> 테이블)"
+            headers={['직원ID', '이름', '부서코드', '부서명', '부서위치']}
+            rows={[
+              ['E01', '홍길동', 'D001', '개발팀', '서울'],
+              ['E02', '김철수', 'D002', '기획팀', '판교'],
+              ['E03', '이영희', 'D001', '개발팀', '서울'],
+            ]}
+          />
+          <p><strong>정규화 후 (<code>직원</code> 테이블과 <code>부서</code> 테이블 분리)</strong></p>
+          <NormalizationExampleTable
+            tableTitle="<code>직원</code> 테이블"
+            headers={['직원ID', '이름', '부서코드']}
+            rows={[
+              ['E01', '홍길동', 'D001'],
+              ['E02', '김철수', 'D002'],
+              ['E03', '이영희', 'D001'],
+            ]}
+          />
+          <NormalizationExampleTable
+            tableTitle="<code>부서</code> 테이블"
+            headers={['부서코드', '부서명', '부서위치']}
+            rows={[
+              ['D001', '개발팀', '서울'],
+              ['D002', '기획팀', '판교'],
+            ]}
+          />
+        </div>
+
 *   **보이스-코드 정규형 (BCNF)**: 3NF보다 더 엄격한 정규형입니다. 모든 결정자가 후보 키여야 합니다.
+    *   **예시**: `수강_교수_과목` 테이블에서 (학생ID, 과목명)이 기본 키이고, 교수가 과목에 종속되는 (과목명 → 교수) 경우. 여기서 과목명은 후보 키가 아닙니다.
+
+        <div class="normalization-example-container">
+          <NormalizationExampleTable
+            tableTitle="정규화 전 (<code>수강_교수_과목</code> 테이블)"
+            headers={['학생ID', '과목명', '교수']}
+            rows={[
+              ['S1001', '데이터베이스', '김교수'],
+              ['S1002', '자료구조', '이교수'],
+              ['S1001', '자료구조', '이교수'],
+            ]}
+          />
+          <p><strong>정규화 후 (<code>수강_과목</code> 테이블과 <code>과목_교수</code> 테이블 분리)</strong></p>
+          <NormalizationExampleTable
+            tableTitle="<code>수강_과목</code> 테이블"
+            headers={['학생ID', '과목명']}
+            rows={[
+              ['S1001', '데이터베이스'],
+              ['S1002', '자료구조'],
+              ['S1001', '자료구조'],
+            ]}
+          />
+          <NormalizationExampleTable
+            tableTitle="<code>과목_교수</code> 테이블"
+            headers={['과목명', '교수']}
+            rows={[
+              ['데이터베이스', '김교수'],
+              ['자료구조', '이교수'],
+            ]}
+          />
+          <p class="table-note">(주의: 이 예시는 BCNF의 특정 상황을 단순화한 것이며, 실제로는 여러 후보 키와 함수 종속 관계를 더 면밀히 분석해야 합니다.)</p>
+        </div>
+
 *   **제4정규형 (4NF) 이상**: 다치 종속(Multi-valued Dependency) 등 더 복잡한 종속성을 다룹니다.
 
 ### 정규화의 장점
@@ -49,6 +175,42 @@ import ComparisonTable from '../../../components/ComparisonTable.astro';
 ## Denormalization(비정규화)이란?
 
 비정규화는 정규화된 데이터베이스의 읽기 성능을 개선하기 위해 의도적으로 데이터 중복을 허용하거나, 테이블을 통합하는 과정입니다. 데이터 조회 시 조인 작업을 줄여 쿼리 실행 속도를 높이는 것을 주된 목표로 합니다.
+
+*   **예시**: 주문 정보 조회 시 고객 이름과 등급을 함께 보여줘야 하는 경우.
+
+    <div class="normalization-example-container">
+      <p><strong>비정규화 전 (정규화된 상태)</strong></p>
+      <NormalizationExampleTable
+        tableTitle="<code>주문</code> 테이블"
+        headers={['주문ID', '고객ID', '주문일자', '총액']}
+        rows={[
+          ['ORD1001', 'CUST001', '2023-10-26', '150000'],
+          ['ORD1002', 'CUST002', '2023-10-26', '85000'],
+          ['ORD1003', 'CUST001', '2023-10-27', '220000'],
+        ]}
+      />
+      <NormalizationExampleTable
+        tableTitle="<code>고객</code> 테이블"
+        headers={['고객ID', '고객명', '고객등급']}
+        rows={[
+          ['CUST001', '홍길동', 'GOLD'],
+          ['CUST002', '김철수', 'SILVER'],
+        ]}
+      />
+      <p>위 상태에서는 주문 목록에 고객명과 등급을 표시하려면 <code>주문</code> 테이블과 <code>고객</code> 테이블을 <code>고객ID</code>로 조인해야 합니다.</p>
+
+      <p><strong>비정규화 후 (<code>주문</code> 테이블에 고객 정보 중복 저장)</strong></p>
+      <NormalizationExampleTable
+        tableTitle="<code>주문</code> 테이블 (비정규화)"
+        headers={['주문ID', '고객ID', '고객명', '고객등급', '주문일자', '총액']}
+        rows={[
+          ['ORD1001', 'CUST001', '홍길동', 'GOLD', '2023-10-26', '150000'],
+          ['ORD1002', 'CUST002', '김철수', 'SILVER', '2023-10-26', '85000'],
+          ['ORD1003', 'CUST001', '홍길동', 'GOLD', '2023-10-27', '220000'],
+        ]}
+      />
+      <p>이제 <code>주문</code> 테이블만 조회해도 고객명과 등급을 바로 알 수 있어 읽기 성능이 향상됩니다. 하지만 고객 정보 변경 시 <code>고객</code> 테이블과 <code>주문</code> 테이블의 중복된 데이터를 모두 수정해야 하는 부담이 생깁니다.</p>
+    </div>
 
 ### 비정규화의 장점
 
