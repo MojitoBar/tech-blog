@@ -35,6 +35,13 @@ export default defineConfig({
 						href: '/favicon.ico',
 					},
 				},
+				{
+					tag: 'meta',
+					attrs: {
+						name: 'google-site-verification',
+						content: 'RSORignUQy_bAFhBP7VNqWsHCi9h8zW7lmMCC17Kk4Q',
+					},
+				},
 			],
 			customCss: ['./src/styles/global.css', './src/styles/card.css', './src/styles/custom.css', './src/fonts/font-face.css'],
 		}),

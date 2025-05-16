@@ -33,12 +33,12 @@
 }
 
 /* 각 카드 타입별 아이콘 색상 */
-.etl-card .card-icon {
+.firstTitle-card .card-icon {
     color: var(--primary);
     /* 주 색상 사용 */
 }
 
-.elt-card .card-icon {
+.secondTitle-card .card-icon {
     color: var(--primary);
     /* 파란색 계열 (ELT: 클라우드, 현대적) */
 }

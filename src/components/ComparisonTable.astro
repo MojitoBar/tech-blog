@@ -4,16 +4,18 @@
 
 export interface Row {
     feature: string; // 특성
-    etl: string; // ETL 내용 (HTML 허용)
-    elt: string; // ELT 내용 (HTML 허용)
+    first: string; // ETL 내용 (HTML 허용)
+    second: string; // ELT 내용 (HTML 허용)
 }
 
 export interface Props {
     title: string; // 테이블 제목 (예: "유연성 비교")
     rows: Row[]; // 테이블 데이터 배열
+    firstTitle: string; // 첫 번째 열 제목 (예: "ETL")
+    secondTitle: string; // 두 번째 열 제목 (예: "ELT")
 }
 
-const { title, rows } = Astro.props;
+const { title, rows, firstTitle, secondTitle } = Astro.props;
 
 // • 문자를 HTML 엔티티 &bull;로 변경하고, 각 줄을 div로 감싸는 함수
 const formatCellContent = (content: string) => {
@@ -40,8 +42,10 @@ const formatCellContent = (content: string) => {
     <div class="comparison-table-custom">
         <div class="table-custom-header">
             <div class="header-custom-cell feature-col">특성</div>
-            <div class="header-custom-cell etl-col">ETL</div>
-            <div class="header-custom-cell elt-col">ELT</div>
+            <div class="header-custom-cell {firstTitle}-col">{firstTitle}</div>
+            <div class="header-custom-cell {secondTitle}-col">
+                {secondTitle}
+            </div>
         </div>
         {
             rows.map((row) => (
@@ -51,12 +55,12 @@ const formatCellContent = (content: string) => {
                         set:html={formatCellContent(row.feature)}
                     />
                     <div
-                        class="body-custom-cell etl-col"
-                        set:html={formatCellContent(row.etl)}
+                        class="body-custom-cell firstTitle-col"
+                        set:html={formatCellContent(row.first)}
                     />
                     <div
-                        class="body-custom-cell elt-col"
-                        set:html={formatCellContent(row.elt)}
+                        class="body-custom-cell secondTitle-col"
+                        set:html={formatCellContent(row.second)}
                     />
                 </div>
             ))
