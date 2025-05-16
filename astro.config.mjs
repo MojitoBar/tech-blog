@@ -5,6 +5,7 @@ import starlightGiscus from 'starlight-giscus';
 
 // https://astro.build/config
 export default defineConfig({
+	site: 'https://mojito-tech-blog.vercel.app/',
 	integrations: [
 		starlight({
 			plugins: [
