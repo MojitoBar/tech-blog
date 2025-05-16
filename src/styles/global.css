@@ -1,13 +1,13 @@
 body {
     background: #fff;
     font-family: 'Pretendard', 'Noto Sans KR', 'Roboto', sans-serif;
-    color: #1e293b;
+    color: #232526;
     letter-spacing: 0.01em;
     transition: background 0.2s, color 0.2s;
 }
 
 html[data-theme="dark"] body {
-    background: linear-gradient(120deg, #232526 0%, #1e293b 100%);
+    background: #232526;
     color: #f3f4f6;
 }
 

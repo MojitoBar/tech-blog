@@ -197,8 +197,28 @@
     font-weight: bold;
 }
 
-.trendy-table tbody tr:nth-child(even) {
-    background-color: #fdfdfd;
+html[data-theme='dark'] .trendy-table th {
+    background-color: var(--sl-color-gray-5);
+    /* 다크모드 헤더 배경 (조정) */
+    color: var(--sl-color-heading);
+    border-color: var(--sl-color-gray-4);
+}
+
+/* 기존 tr:nth-child(even)에 직접 배경색을 지정하는 규칙은 아래 td 대상으로 대체 또는 주석 처리합니다. */
+/* html[data-theme='dark'] .trendy-table tbody tr:nth-child(even) { */
+/* background-color: var(--sl-color-bg-accent); */
+/* } */
+
+html[data-theme='dark'] .trendy-table td {
+    background-color: var(--sl-color-bg);
+    /* 다크모드 일반 셀 배경 (페이지 배경과 동일하게) */
+    border-color: var(--sl-color-gray-4);
+    color: var(--sl-color-gray-2);
+}
+
+html[data-theme='dark'] .trendy-table tbody tr:nth-child(even) td {
+    background-color: #232526;
+    /* 다크모드 짝수 행 셀 배경 (페이지 배경과 동일하게) */
 }
 
 .normalization-example-container {
@@ -213,4 +233,15 @@
     font-size: 1.1em;
     display: block;
     margin-bottom: 0.5em;
+}
+
+html[data-theme='dark'] .normalization-example-container p>strong {
+    color: var(--sl-color-heading);
+}
+
+html[data-theme='dark'] .normalization-example-container {
+    background-color: #232526;
+    /* 다크모드 컨테이너 배경 (페이지 배경과 동일하게) */
+    border-color: var(--sl-color-gray-5);
+    /* 다크모드 컨테이너 테두리 (조정) */
 }
