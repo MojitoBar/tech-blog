@@ -40,7 +40,7 @@ export default defineConfig({
 					tag: 'meta',
 					attrs: {
 						name: 'google-site-verification',
-						content: 'RSORignUQy_bAFhBP7VNqWsHCi9h8zW7lmMCC17Kk4Q',
+						content: 'D9UkM4Wzh6zGyXKePHH21HM9W-7zFbOLoLq-sMLscWY',
 					},
 				},
 			],
