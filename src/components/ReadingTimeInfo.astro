@@ -1,0 +1,35 @@
+---
+// src/components/ReadingTimeInfo.astro
+interface Props {
+    minutesRead?: string;
+    date?: string;
+}
+
+const { minutesRead, date } = Astro.props;
+---
+
+{
+    minutesRead && (
+        <div class="page-meta-custom">
+            {date && (
+                <span class="date-custom">Last updated: {date}&nbsp •</span>
+            )}
+            <span class="reading-time-custom">{minutesRead}</span>
+        </div>
+    )
+}
+
+<style>
+    .page-meta-custom {
+        color: var(--sl-color-gray-3); /* Starlight 테마 색상 변수 활용 */
+        font-size: var(--sl-text-sm); /* Starlight 테마 폰트 크기 변수 활용 */
+        margin-top: 0.25rem; /* 제목과의 간격 조정 */
+        margin-bottom: 1rem; /* 본문과의 간격 조정 */
+        display: flex;
+        align-items: center;
+        gap: 0.5em;
+    }
+    .reading-time-custom {
+        /* 특별한 스타일이 필요하면 여기에 추가 */
+    }
+</style>

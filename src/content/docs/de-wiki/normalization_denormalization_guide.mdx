@@ -1,7 +1,6 @@
 ---
-title: '데이터 정규화 vs 비정규화: 핵심 가이드'
+title: '데이터 정규화 vs 비정규화'
 description: '데이터베이스 설계의 핵심, 정규화와 비정규화를 비교 분석하고 상황에 맞는 최적의 선택을 안내합니다. 주요 개념, 장단점, 사용 사례를 자세히 알아보세요.'
-pubDate: '2025-05-20' # 실제 발행일에 맞춰 수정해주세요.
 head:
   - tag: meta
     attrs:
@@ -10,8 +9,11 @@ head:
 ---
 import ComparisonTable from '../../../components/ComparisonTable.astro';
 import NormalizationExampleTable from '../../../components/NormalizationExampleTable.astro';
+import ReadingTimeInfo from '../../../components/ReadingTimeInfo.astro';
 
-:::tip[💡 핵심 요약]
+<ReadingTimeInfo minutesRead="6 min read" date="2025-05-16"/>
+
+:::tip[핵심 요약]
 **정규화(Normalization)** 는 데이터 중복을 최소화하고 일관성을 확보하는 데이터베이스 구조화 기법입니다. 반면, **비정규화(Denormalization)** 는 읽기 성능을 높이기 위해 의도적으로 데이터 중복을 허용하는 전략입니다. 각 방식은 데이터 무결성, 성능, 관리 복잡성 등에서 서로 다른 장단점을 가지므로, 시스템의 특성과 요구사항을 정확히 파악하고 적절한 균형을 찾는 것이 중요합니다. 이 글은 두 기법을 심층 비교하여 최적의 설계 결정을 돕습니다.
 :::
 

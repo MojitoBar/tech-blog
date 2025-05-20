@@ -270,7 +270,7 @@ html[data-theme='light'] .choice-card h3 {
 
 /* 다크 모드 스타일 */
 html[data-theme='dark'] .choice-card {
-    background-color: #182233;
+    background-color: #23262f;
     /* Starlight 표면 배경 (기본 배경보다 약간 밝음) */
     color: var(--sl-color-text-dark);
     border: 1px solid var(--sl-color-hairline-dark);

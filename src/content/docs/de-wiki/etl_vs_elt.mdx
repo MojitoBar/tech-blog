@@ -1,7 +1,6 @@
 ---
-title: 'ETL vs ELT: 핵심 차이점과 올바른 선택 가이드'
+title: 'ETL vs ELT'
 description: '데이터 파이프라인의 두 가지 주요 접근 방식인 ETL과 ELT를 심층 비교하고, 상황에 맞는 최적의 선택을 위한 가이드라인을 제공합니다.'
-pubDate: '2025-05-15'
 head:
   - tag: meta
     attrs:
@@ -10,8 +9,11 @@ head:
 ---
 import ChoiceCardGrid from '../../../components/ChoiceCardGrid.astro';
 import ComparisonTable from '../../../components/ComparisonTable.astro';
+import ReadingTimeInfo from '../../../components/ReadingTimeInfo.astro';
 
-:::tip[💡 핵심 요약]
+<ReadingTimeInfo minutesRead="5 min read" date="2025-05-14"/>
+
+:::tip[핵심 요약]
 **ETL**(추출, 변환, 적재)과 **ELT**(추출, 적재, 변환)는 데이터 처리의 두 가지 핵심 접근법입니다. ETL은 데이터를 정제 후 저장하는 전통적 방식이며, ELT는 원본 데이터를 먼저 저장하고 필요시 변환하는 현대적 방식으로, 각각 유연성, 비용, 성능 면에서 장단점을 가집니다. 이 글은 두 방식의 차이를 상세히 비교하고 상황별 최적의 선택을 돕습니다.
 :::
 
