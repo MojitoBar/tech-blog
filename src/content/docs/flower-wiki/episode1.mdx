@@ -1,0 +1,368 @@
+---
+title: '나만의 꽃 도감 만들기 - 식물 데이터 수집'
+description: '공공데이터포털 API를 활용해 꽃 데이터를 수집하기'
+head:
+  - tag: meta
+    attrs:
+      property: og:image
+      content: https://mojito-tech-blog.vercel.app/images/flower-wiki1.png
+---
+
+import ReadingTimeInfo from '../../../components/ReadingTimeInfo.astro';
+
+<ReadingTimeInfo minutesRead="4 min read" date="2025-06-17"/>
+
+![꽃 도감 1편 대표 이미지](/images/flower-wiki1.png)
+
+## 길가의 꽃 이름이 알고 싶다!
+
+저는 문득 길가의 꽃 이름이 궁금할 때가 있습니다. 보통은 네이버나 구글 이미지 검색을 통해 어떤 꽃인지 확인을 하는 편인데요, 한 가지 아쉬웠던 점은 제 기억력이 그리 좋지 못하다는 점입니다.
+
+분명 저번에 검색헀던 꽃인데 다시 보니 기억이 안나거나, 혹은 어떤 꽃이 정말 이뻤는데 그게 무슨 꽃이었는지 기억이 나지 않더라고요.
+
+그래서 이거 매번 찾는 정보를 계속 휘발시키지 말고 **도감화** 하는게 어떨까 하는 생각이 들었습니다.
+
+마냥 상상만 하다가 마침 [**공공데이터포털**](https://www.data.go.kr/index.do)에서 관련 정보를 API로 제공하고 있다는 것을 알게 되어 프로젝트로 진행해보고자 마음을 먹게 되었습니다.
+
+## 공공 데이터 포털의 식물 목록 API
+
+원하는 정보가 API로 제공되는 것은 좋은데, 몇 가지 문제가 있었습니다.
+
+1. **신청 가능 트래픽이 존재합니다.**
+
+    기본적으로 개발계정의 경우 일일 1000건의 트래픽 limit가 존재합니다. 물론 활용사례를 등록하면 트래픽이 증가한다고 설명되어 있지만, 어딘가에 의존하고 싶지 않았습니다.
+
+2. **모든 꽃 데이터가 존재하는 것이 아닙니다.**
+    
+    만약 리스트에 없는 꽃을 검색한다면 이 정보를 추후에도 사용할 수 있게 추가되었으면 했습니다.
+
+3. **유지보수가 안될 수도 있습니다.**
+    
+    이 API는 기등록된 활용사례도 없고, 많은 사람의 주목을 받는 API도 아니기 때문에 언제 없어져도, 혹은 업데이트가 끊겨도 이상하지 않습니다.
+
+이러한 문제를 해결하기 위해 저는 모든 데이터를 Raw 데이터로 저장해 별도의 서버를 두어야겠다고 판단했습니다.
+
+## 식물 목록 수집
+
+API를 사용하려면 먼저 공공데이터포털에서 활용신청을 해야합니다. 사용할 데이터의 종류에 따라 다르지만 [산림청 국립수목원 식물자원 조회 서비스](https://www.data.go.kr/tcs/dss/selectApiDataDetailView.do?publicDataPk=15143513)의 경우엔 자동승인이라 바로 사용할 수 있었습니다.
+
+지원하는 API가 다양하지만 제가 사용할 데이터는 `식물도감 목록 검색`과 `식물도감 상세정보 조회` 입니다.
+
+`식물 도감 목록 검색`에서 전체 식물 리스트를 가져오고, 여기에 있는 고유 식물 번호로 `식물도감 상세정보 조회` API를 다시 요청해서 상세 정보를 가져오는 방식입니다.
+
+다행히도 `식물 도감 목록 검색` API에는 `totalCount` 필드가 존재했고, 이를 통해 전체 식물 개수(4,286개)를 확인할 수 있었습니다. 이렇게 확인된 전체 식물 개수를 통해 아래와 같은 코드로 한번에 모든 식물 리스트를 한번에 가져오는 것이 가능했습니다.
+
+```python title="전체 식물 목록 조회"
+import requests
+import os
+from dotenv import load_dotenv
+
+def get_plant_list():
+    """
+    국가생물종지식정보시스템 API를 호출하여 전체 식물 목록을 가져옵니다.
+    """
+    # .env 파일에서 환경 변수 로드
+    load_dotenv()
+    
+    # 서비스 키는 보안을 위해 환경 변수에서 가져옵니다.
+    service_key = os.getenv("PLANT_API_KEY")
+    if not service_key:
+        raise ValueError("API 키가 설정되지 않았습니다. .env 파일에 PLANT_API_KEY를 추가해주세요.")
+
+    url = 'http://apis.data.go.kr/1300000/FifaPlantPilbkSvc/plantPilbkSearch'
+    params = {
+        'serviceKey': service_key,
+        'numOfRows': '4286',  # 전체 데이터 수가 4286개이므로
+        'pageNo': '1'
+    }
+
+    try:
+        response = requests.get(url, params=params, timeout=30)
+        response.raise_for_status()  # HTTP 오류 발생 시 예외 발생
+        return response.content
+    except requests.exceptions.RequestException as e:
+        print(f"API 요청 중 오류 발생: {e}")
+        return None
+```
+
+그리고 각각의 식물 정보에 있는 고유 식물 번호인 `plantPilbkNo`를 이용해 다시 API를 호출하기 위해서 위 결과값을 csv로 저장했습니다.
+
+```python title="고유 식물 번호로 식물도감 상세정보 조회"
+import xml.etree.ElementTree as ET
+import csv
+
+def parse_and_save_to_csv(xml_data):
+    """
+    XML 데이터를 파싱하여 CSV 파일로 저장합니다.
+    """
+    if xml_data is None:
+        return
+
+    try:
+        root = ET.fromstring(xml_data)
+        
+        # API 응답 성공 여부 확인
+        result_code = root.find('.//resultCode')
+        if result_code is not None and result_code.text != '00':
+            result_msg = root.find('.//resultMsg')
+            print(f"API 에러: {result_msg.text} (코드: {result_code.text})")
+            return
+
+        items = root.findall('.//item')
+        if not items:
+            print("데이터를 찾을 수 없습니다.")
+            return
+
+        # CSV 파일로 저장
+        with open('flower_list.csv', 'w', newline='', encoding='utf-8') as csvfile:
+            fieldnames = ['plantPilbkNo', 'plantPilbkNm']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+
+            for item in items:
+                writer.writerow({
+                    'plantPilbkNo': item.find('plantPilbkNo').text,
+                    'plantPilbkNm': item.find('plantPilbkNm').text
+                })
+        
+        print(f"총 {len(items)}개의 식물 정보를 'flower_list.csv' 파일에 저장했습니다.")
+
+    except ET.ParseError as e:
+        print(f"XML 파싱 중 오류 발생: {e}")
+    except Exception as e:
+        print(f"처리 중 예외 발생: {e}")
+```
+
+이렇게 전체 리스트를 저장했다면, 이제 각 식물의 상세 정보를 가져오는 코드를 작성해야합니다.
+
+## 식물 상세 정보 수집
+
+식물 상세정보는 API 요청 1번당 1개의 데이터만 가져올 수 있습니다. 
+
+즉, 4286개의 식물 데이터를 가져오기 위해서는 4286번의 API 요청이 필요하다는 뜻이죠. 그리고 각 API는 1000개의 일일 트래픽 제한이 있습니다. 그러니 최소 5일은 API를 요청해야하는 상황입니다.
+
+이런 상황에서 가장 중요한 것은 그냥 똑같이 실행해도 마지막으로 호출한 지점을 저장해서 다음번에 이어서 호출할 수 있도록 하는 것이라 생각했습니다.
+
+그래서 저는 안전하게 하루에 API를 990번 요청하며 이 결과물을 JSON에 저장하였습니다. 그리고 다음날 API를 요청할 때 저장했던 JSON 데이터를 읽어와 마지막 데이터에서부터 이어서 호출하는 방식으로 구현했습니다.
+
+```python title="식물 상세 정보 수집"
+import csv
+import json
+import os
+
+def load_plant_numbers_from_csv(filepath):
+    """CSV 파일에서 전체 식물 번호 목록을 읽어옵니다."""
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            # 'plantPilbkNo' 키가 있는 행만 유효한 데이터로 간주합니다.
+            plant_numbers = [row['plantPilbkNo'] for row in reader if row.get('plantPilbkNo')]
+        if not plant_numbers:
+            print(f"오류: '{filepath}'에서 'plantPilbkNo'를 찾을 수 없거나 파일이 비어있습니다.")
+            return []
+        return plant_numbers
+    except FileNotFoundError:
+        print(f"오류: 입력 파일 '{filepath}'을 찾을 수 없습니다.")
+        return []
+    except Exception as e:
+        print(f"오류: '{filepath}' 파일을 읽는 중 오류 발생: {e}")
+        return []
+
+def load_processed_data(filepath):
+    """기존 JSON 파일에서 이미 처리된 데이터를 불러와 '이어하기'를 준비합니다."""
+    if not os.path.exists(filepath):
+        return [], set() # 파일이 없으면 빈 데이터 반환
+
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            content = f.read()
+            if not content: # 파일은 있지만 내용이 비어있을 경우
+                return [], set()
+            
+            existing_data = json.loads(content)
+            # 이미 저장된 데이터에서 식물 번호만 추출하여 집합(set)으로 만듭니다.
+            processed_nos = {item['plantPilbkNo'] for item in existing_data if 'plantPilbkNo' in item}
+            print(f"기존 '{filepath}' 파일에서 {len(processed_nos)}개의 처리된 데이터를 불러왔습니다.")
+            return existing_data, processed_nos
+            
+    except (json.JSONDecodeError, KeyError) as e:
+        print(f"경고: '{filepath}' 파일 처리 중 오류({e}). 새 파일을 생성합니다.")
+        return [], set()
+```
+
+## 전체 프로세스
+
+전체 프로세스는 다음과 같습니다.
+
+```python title="전체 프로세스"
+import csv
+import json
+import os
+import requests
+import xml.etree.ElementTree as ET
+import time
+from tqdm import tqdm
+from dotenv import load_dotenv
+
+def load_plant_numbers_from_csv(filepath):
+    """CSV 파일에서 전체 식물 번호 목록을 읽어옵니다."""
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            plant_numbers = [row['plantPilbkNo'] for row in reader if row.get('plantPilbkNo')]
+        if not plant_numbers:
+            print(f"오류: '{filepath}'에서 'plantPilbkNo'를 찾을 수 없거나 파일이 비어있습니다.")
+            return []
+        return plant_numbers
+    except FileNotFoundError:
+        print(f"오류: 입력 파일 '{filepath}'을 찾을 수 없습니다.")
+        return []
+    except Exception as e:
+        print(f"오류: '{filepath}' 파일을 읽는 중 오류 발생: {e}")
+        return []
+
+def load_processed_data(filepath):
+    """기존 JSON 파일에서 이미 처리된 데이터를 불러와 '이어하기'를 준비합니다."""
+    if not os.path.exists(filepath):
+        return [], set()
+
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            content = f.read()
+            if not content:
+                return [], set()
+            existing_data = json.loads(content)
+            processed_nos = {item['plantPilbkNo'] for item in existing_data if 'plantPilbkNo' in item}
+            print(f"기존 '{filepath}' 파일에서 {len(processed_nos)}개의 처리된 데이터를 불러왔습니다.")
+            return existing_data, processed_nos
+    except (json.JSONDecodeError, KeyError) as e:
+        print(f"경고: '{filepath}' 파일 처리 중 오류({e}). 새 파일을 생성합니다.")
+        return [], set()
+
+def fetch_plant_detail(session, api_url, service_key, plant_no):
+    """하나의 식물 번호에 대한 상세 정보를 API로 조회하고 결과를 반환합니다."""
+    params = {'serviceKey': service_key, 'reqPlantPilbkNo': plant_no}
+    try:
+        response = session.get(api_url, params=params, timeout=10)
+        response.raise_for_status()
+
+        if not response.content:
+            return None, f"식물 번호 {plant_no}에 대한 응답이 비어있습니다."
+
+        root = ET.fromstring(response.content)
+        result_code_element = root.find('.//resultCode')
+        result_code = result_code_element.text.strip() if result_code_element is not None else ''
+
+        if result_code == '04':
+            return False, "API 일일 트래픽 초과(코드:04)"
+        if result_code == '00':
+            item = root.find('.//item')
+            if item is not None:
+                return True, {child.tag: child.text.strip() if child.text else '' for child in item}
+            else:
+                return None, f"식물 번호 {plant_no} 응답에 '<item>' 태그가 없습니다."
+        else:
+            msg_element = root.find('.//resultMsg')
+            msg = msg_element.text.strip() if msg_element is not None else "메시지 없음"
+            return None, f"식물 번호 {plant_no} API 오류 (코드: {result_code}, 메시지: {msg})"
+    except requests.RequestException as e:
+        return None, f"식물 번호 {plant_no} 요청 실패: {e}"
+    except ET.ParseError as e:
+        return None, f"식물 번호 {plant_no} XML 파싱 실패: {e}"
+
+def save_data_to_json(filepath, data):
+    """수집된 전체 데이터를 JSON 파일로 저장합니다."""
+    try:
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+        print(f"\n완료! 총 {len(data)}개의 데이터를 '{filepath}'에 성공적으로 저장했습니다.")
+    except Exception as e:
+        print(f"\n오류: '{filepath}' 파일 저장 중 오류 발생: {e}")
+
+def run_collection_process():
+    """전체 상세 정보 수집 프로세스를 실행하고 진행 상황을 로깅합니다."""
+    load_dotenv()
+    service_key = os.getenv("PLANT_DETAIL_API_KEY")
+    if not service_key:
+        raise ValueError("API 키가 설정되지 않았습니다. .env 파일에 PLANT_DETAIL_API_KEY를 추가해주세요.")
+
+    input_csv_file = 'flower_list.csv'
+    output_json_file = 'flower_details.json'
+    api_url = 'http://apis.data.go.kr/1400119/PlantResource/plantPilbkInfo'
+    REQUEST_LIMIT_PER_RUN = 990
+
+    total_plant_numbers = load_plant_numbers_from_csv(input_csv_file)
+    if not total_plant_numbers: return
+
+    existing_data, processed_nos = load_processed_data(output_json_file)
+    plant_numbers_to_process = [pn for pn in total_plant_numbers if pn not in processed_nos]
+
+    if not plant_numbers_to_process:
+        print("모든 식물 정보 수집이 완료되었습니다.")
+        return
+
+    newly_added_details = []
+    total_remaining = len(plant_numbers_to_process)
+    num_to_process_this_run = min(total_remaining, REQUEST_LIMIT_PER_RUN)
+    print(f"총 {total_remaining}개 중 {num_to_process_this_run}개의 상세 정보를 수집합니다.")
+
+    with requests.Session() as session, tqdm(total=num_to_process_this_run, desc="상세 정보 수집 중") as pbar:
+        for plant_no in plant_numbers_to_process:
+            if len(newly_added_details) >= REQUEST_LIMIT_PER_RUN:
+                tqdm.write(f"\n설정된 요청 제한({REQUEST_LIMIT_PER_RUN}개)에 도달하여 중단합니다.")
+                break
+            
+            success, result = fetch_plant_detail(session, api_url, service_key, plant_no)
+
+            if success is True:
+                newly_added_details.append(result)
+            elif success is False:
+                tqdm.write(f"\n{result}")
+                break
+            else:
+                tqdm.write(f"경고: {result}")
+            
+            pbar.update(1)
+            time.sleep(0.05)
+
+    if newly_added_details:
+        final_data = existing_data + newly_added_details
+        save_data_to_json(output_json_file, final_data)
+    else:
+        print("\n이번 실행에서 새로 추가된 데이터가 없습니다.")
+
+    remaining_after_run = total_remaining - len(newly_added_details)
+    if remaining_after_run > 0:
+        print(f"아직 {remaining_after_run}개의 식물 정보가 남아있습니다. 다시 스크립트를 실행해주세요.")
+    else:
+        print("모든 데이터 수집을 성공적으로 완료했습니다!")
+
+if __name__ == '__main__':
+    run_collection_process()
+```
+
+## 다음 편
+
+이제 데이터가 준비되었으니, 이 정보를 보여줄 프론트를 구현해야합니다.
+
+저는 애초에 밖을 돌아다니다 꽃 정보가 궁금할 때 이용하기 위해 이 프로젝트를 시작했기 때문에 모바일 친화적이면서, 제일 쉽게 접근할 수 있는 앱 형태를 선택하였습니다.
+
+또한 프론트 기술을 학습하고자 시작한 프로젝트가 아니기 때문에 AI의 도움을 최대치로 받을 수 있는 플러터를 선택했습니다.
+
+따라서 다음 편에서는 어떤 화면으로 구성했는지에 대한 내용을 다뤄볼 예정입니다.
+
+## 트러블 슈팅
+
+여담으로 공공데이터포털 API를 호출하는 중간에 한 가지 문제를 겪었습니다.
+
+```
+SSLError: HTTPSConnectionPool(host='apis.data.go.kr', port=443)
+```
+
+이 문제였는데요, 이해가 안갔던건 공공데이터포털에서 `미리보기`로 실행할때나, `직접 호출해보는 페이지`에서나, `Postman`에서나 전혀 문제가 없던 것이, `python 코드`에서 호출하면 문제가 발생한다는 것이었습니다.
+
+결론적으로 `https`가 아니라 `http`로 호출하면 정상적으로 호출된다는 것을 알게 되긴 했는데, 이해가 안갔던게 공공데이터포털에서는 분명 `EndPoint`가 `https`로 되어있었고, `미리보기`나 `Postman`에서도 `https`로 호출하고 있다는 점입니다.
+
+정확한 원인은 아직도 모르겠지만 추측컨데 애초에 이 API가 `http`만 지원하고 있고, `Postman`이나 `미리보기`에서는 `SSL` 인증서 오류를 무시하게끔 되어있는 것이 아닌가 싶습니다.
+
+사실 그렇다 해도 문서에는 `EndPoint`가 `https`로 되어있다는게 설명이 안되긴 합니다.

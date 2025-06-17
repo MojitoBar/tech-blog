@@ -26,6 +26,10 @@ export default defineConfig({
 					label: 'Data Engineering Wiki',
 					autogenerate: { directory: '/de-wiki' }
 				},
+				{
+					label: '꽃 도감',
+					autogenerate: { directory: '/flower-wiki' }
+				},
 			],
 			head: [
 				{
